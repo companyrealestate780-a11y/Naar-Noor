@@ -24,7 +24,7 @@ jobs:
           node-version: '18'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       
       - name: Run npm audit
         run: npm audit --audit-level=moderate
@@ -165,7 +165,7 @@ jobs:
           node-version: '18'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       
       - name: Check licenses
         run: npx license-checker --summary
