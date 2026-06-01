@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface MenuItem {
   id: string;
@@ -74,28 +75,28 @@ export interface CreateOrderResponse {
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly http = inject(HttpClient);
-  private readonly base = '/api';
+  private readonly baseUrl = `${environment.apiUrl}/api`;
 
   getMenu(category?: string): Observable<MenuItem[]> {
     const url = category
-      ? `${this.base}/menu?category=${encodeURIComponent(category)}`
-      : `${this.base}/menu`;
+      ? `${this.baseUrl}/menu?category=${encodeURIComponent(category)}`
+      : `${this.baseUrl}/menu`;
     return this.http.get<MenuItem[]>(url);
   }
 
   getChefs(): Observable<Chef[]> {
-    return this.http.get<Chef[]>(`${this.base}/chefs`);
+    return this.http.get<Chef[]>(`${this.baseUrl}/chefs`);
   }
 
   getReviews(): Observable<Review[]> {
-    return this.http.get<Review[]>(`${this.base}/reviews`);
+    return this.http.get<Review[]>(`${this.baseUrl}/reviews`);
   }
 
   createReservation(data: CreateReservationRequest): Observable<CreateReservationResponse> {
-    return this.http.post<CreateReservationResponse>(`${this.base}/reservations`, data);
+    return this.http.post<CreateReservationResponse>(`${this.baseUrl}/reservations`, data);
   }
 
   createOrder(data: CreateOrderRequest): Observable<CreateOrderResponse> {
-    return this.http.post<CreateOrderResponse>(`${this.base}/orders`, data);
+    return this.http.post<CreateOrderResponse>(`${this.baseUrl}/orders`, data);
   }
 }

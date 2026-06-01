@@ -1,0 +1,14 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/lost-yeti/browser",
+  "framework": "angular",
+  "env": {
+    "ANGULAR_CLI_ANALYTICS": "false"
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
