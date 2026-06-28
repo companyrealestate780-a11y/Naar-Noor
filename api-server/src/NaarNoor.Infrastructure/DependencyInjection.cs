@@ -1,4 +1,6 @@
+using AspNetCoreRateLimit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NaarNoor.Application.Common.Interfaces;
@@ -24,6 +26,23 @@ public static class DependencyInjection
 
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // Rate Limiting (via built-in AspNetCoreRateLimit)
+        services.AddMemoryCache();
+        services.Configure<IpRateLimitOptions>(options =>
+        {
+            options.EnableEndpointRateLimiting = true;
+            options.StackBlockedRequests = false;
+            options.RealIpHeader = "X-Real-IP";
+            options.HttpStatusCode = 429;
+            options.GeneralRules = new List<RateLimitRule>
+            {
+                new() { Endpoint = "*/auth/register", Period = "1m", Limit = 5 },
+                new() { Endpoint = "*/auth/login", Period = "1m", Limit = 10 },
+                new() { Endpoint = "*", Period = "1m", Limit = 100 },
+            };
+        });
+        services.AddInMemoryRateLimiting();
 
         // Supabase Services - REST API based implementation
         var supabaseUrl = configuration["Supabase:Url"] ?? throw new InvalidOperationException("Supabase URL not configured");

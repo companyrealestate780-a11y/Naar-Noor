@@ -46,12 +46,12 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
-      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING:-Server=naar-noor-prod-database;Database=db54355;User Id=sa;Password=YourPassword123!;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True;}
-      - DatabaseHost=naar-noor-prod-database
-      - DatabasePort=1433
+      - POSTGRESQL_CONNECTION_STRING=Host=db.uyzocpvytoljigmcpafn.supabase.co;Port=5432;Database=postgres;User Id=postgres;Password=${SUPABASE_DB_PASSWORD}
+      - Supabase__Url=${SUPABASE_URL}
+      - Supabase__AnonKey=${SUPABASE_ANON_KEY}
+      - Supabase__ServiceRoleKey=${SUPABASE_SERVICE_ROLE_KEY}
     depends_on:
-      naar-noor-prod-database:
-        condition: service_healthy
+      - naar-noor-prod-web
     networks:
       - naar-noor-prod-network
     restart: unless-stopped
@@ -66,44 +66,17 @@ services:
       com.naar-noor.environment: "production"
       com.naar-noor.description: "Backend API server (.NET 8.0)"
 
-  # Database - SQL Server (local development/testing)
-  naar-noor-prod-database:
-    image: mcr.microsoft.com/mssql/server:2019-latest
-    container_name: naar-noor-prod-database
-    hostname: naar-noor-prod-database
-    ports:
-      - "1433:1433"
-    environment:
-      - MSSQL_SA_PASSWORD=${DB_SA_PASSWORD:-YourPassword123!}
-      - ACCEPT_EULA=Y
-      - MSSQL_PID=Developer
-      - MSSQL_DATA_DIR=/var/opt/mssql/data
-      - MSSQL_LOG_DIR=/var/opt/mssql/log
-      - MSSQL_BACKUP_DIR=/var/opt/mssql/backup
-    volumes:
-      - naar-noor-prod-database-data:/var/opt/mssql/data
-      - naar-noor-prod-database-log:/var/opt/mssql/log
-      - naar-noor-prod-database-backup:/var/opt/mssql/backup
-    networks:
-      - naar-noor-prod-network
-    restart: unless-stopped
-    healthcheck:
-      test: [
-        "CMD",
-        "/opt/mssql-tools/bin/sqlcmd",
-        "-S", "naar-noor-prod-database",
-        "-U", "sa",
-        "-P", "${DB_SA_PASSWORD:-YourPassword123!}",
-        "-Q", "SELECT 1"
-      ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    labels:
-      com.naar-noor.service: "database"
-      com.naar-noor.environment: "production"
-      com.naar-noor.description: "SQL Server database (2019)"
+  # Note: Database is managed by Supabase (PostgreSQL)
+  # Connection string should be set via environment variables:
+  # - POSTGRESQL_CONNECTION_STRING or
+  # - ConnectionStrings__SupabasePostgresql in appsettings
+  # 
+  # For local development with PostgreSQL, use:
+  # docker run -d --name naar-noor-local-db \
+  #   -e POSTGRES_PASSWORD=dev123 \
+  #   -e POSTGRES_DB=naar_noor \
+  #   -p 5432:5432 \
+  #   postgres:16-alpine
 
 networks:
   naar-noor-prod-network:
@@ -111,20 +84,3 @@ networks:
     driver: bridge
     labels:
       com.naar-noor.network: "production"
-
-volumes:
-  naar-noor-prod-database-data:
-    driver: local
-    labels:
-      com.naar-noor.volume: "database-data"
-      com.naar-noor.environment: "production"
-  naar-noor-prod-database-log:
-    driver: local
-    labels:
-      com.naar-noor.volume: "database-log"
-      com.naar-noor.environment: "production"
-  naar-noor-prod-database-backup:
-    driver: local
-    labels:
-      com.naar-noor.volume: "database-backup"
-      com.naar-noor.environment: "production"
